@@ -52,6 +52,10 @@ on:
         description: "Package formats (comma-separated: deb,appimage,rpm)"
         required: false
         default: "deb"
+      extra_params:
+        description: "Additional CLI parameters (e.g., --show-system-tray)"
+        required: false
+        default: ""
 
 jobs:
   build:
@@ -128,6 +132,11 @@ jobs:
             ARGS+=("--targets" "${{ inputs.targets }}")
           fi
 
+          if [ -n "${{ inputs.extra_params }}" ]; then
+            read -ra EXTRA <<< "${{ inputs.extra_params }}"
+            ARGS+=("${EXTRA[@]}")
+          fi
+
           echo "Running: node dist/cli.js ${ARGS[@]}"
           node dist/cli.js "${ARGS[@]}"
 
@@ -156,6 +165,11 @@ jobs:
 
           if ("${{ inputs.hide_title_bar }}" -eq "true") {
             $args += "--hide-title-bar"
+          }
+
+          if ("${{ inputs.extra_params }}" -ne "") {
+            $extra = "${{ inputs.extra_params }}".Split(" ") | Where-Object { $_ -ne "" }
+            $args += $extra
           }
 
           Write-Host "Running: node dist/cli.js $($args -join ' ')"
